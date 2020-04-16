@@ -91,6 +91,7 @@ def download_clip(
         "-o",
         '"%s"' % tmp_filename,
         '"%s"' % (url_base + video_identifier),
+        "--verbose"
         # "--cookies",
         # "cookies.txt",
     ]
@@ -104,7 +105,8 @@ def download_clip(
         except subprocess.CalledProcessError as err:
             attempts += 1
             if attempts == num_attempts:
-                tqdm_bar.update()
+                tqdm_bar_failed_download.update()
+                print(err.output.decode("utf-8"))
                 return status, err.output.decode("utf-8")
         else:
             break
@@ -136,13 +138,13 @@ def download_clip(
         p = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE)
         p.wait()
     except subprocess.CalledProcessError as err:
-        # print(err)
-        tqdm_bar.update()
+        tqdm_bar_failed_processing.update()
         return status, err.output.decode("utf-8")
     # Check if the video was successfully saved.
+    print("done")
     status = os.path.exists(output_filename)
     os.remove(tmp_filename)
-    tqdm_bar.update()
+    tqdm_bar_success.update()
     return status, "Downloaded"
 
 
@@ -218,8 +220,16 @@ def main(
 
     # Creates folders where videos will be saved later.
     label_to_dir = create_video_folders(dataset, output_dir, tmp_dir)
-    global tqdm_bar
-    tqdm_bar = tqdm(total=dataset.shape[0])
+    global tqdm_bar_failed_download
+    global tqdm_bar_failed_processing
+    global tqdm_success
+    tqdm_bar_failed_download = tqdm(
+        total=dataset.shape[0], desc="Videos that failed to be downloaded"
+    )
+    tqdm_bar_failed_processing = tqdm(
+        total=dataset.shape[0], desc="Videos that failed to be processed"
+    )
+    tqdm_bar_sucess = tqdm(total=dataset.shape[0], desc="Videos successfully downloaded")
 
     pool = Pool(max_workers=num_jobs)
     futures = []
@@ -243,9 +253,14 @@ def main(
 
     pool.shutdown(wait=True)
     for future in futures:
-        res = future.result(timeout=60 * 10)
+        res = future.result(timeout=60 * 1)
         status_lst.append(res)
-    tqdm_bar.close()
+        # Save download report.
+        with open("download_report.json", "w") as fobj:
+            fobj.write(json.dumps(status_lst))
+    tqdm_bar_failed_download.close()
+    tqdm_bar_failed_processing.close()
+    tqdm_bar_sucess.close()
 
     # Clean tmp dir.
     shutil.rmtree(tmp_dir)
