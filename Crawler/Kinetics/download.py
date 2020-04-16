@@ -106,7 +106,7 @@ def download_clip(
             attempts += 1
             if attempts == num_attempts:
                 tqdm_bar_failed_download.update()
-                print(err.output.decode("utf-8"))
+                # print(err.output.decode("utf-8"))
                 return status, err.output.decode("utf-8")
         else:
             break
