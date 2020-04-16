@@ -91,9 +91,8 @@ def download_clip(
         "-o",
         '"%s"' % tmp_filename,
         '"%s"' % (url_base + video_identifier),
-        "--verbose"
-        # "--cookies",
-        # "cookies.txt",
+        "--cookies",
+        "cookies.txt",
     ]
     command = " ".join(command)
     attempts = 0
@@ -106,7 +105,7 @@ def download_clip(
             attempts += 1
             if attempts == num_attempts:
                 tqdm_bar_failed_download.update()
-                print(err.output.decode("utf-8"))
+                # print(err.output.decode("utf-8"))
                 return status, err.output.decode("utf-8")
         else:
             break
@@ -141,7 +140,6 @@ def download_clip(
         tqdm_bar_failed_processing.update()
         return status, err.output.decode("utf-8")
     # Check if the video was successfully saved.
-    print("done")
     status = os.path.exists(output_filename)
     os.remove(tmp_filename)
     tqdm_bar_success.update()
