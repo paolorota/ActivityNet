@@ -106,7 +106,7 @@ def download_clip(
             attempts += 1
             if attempts == num_attempts:
                 tqdm_bar_failed_download.update()
-                # print(err.output.decode("utf-8"))
+                print(err.output.decode("utf-8"))
                 return status, err.output.decode("utf-8")
         else:
             break
@@ -222,14 +222,14 @@ def main(
     label_to_dir = create_video_folders(dataset, output_dir, tmp_dir)
     global tqdm_bar_failed_download
     global tqdm_bar_failed_processing
-    global tqdm_success
+    global tqdm_bar_success
     tqdm_bar_failed_download = tqdm(
         total=dataset.shape[0], desc="Videos that failed to be downloaded"
     )
     tqdm_bar_failed_processing = tqdm(
         total=dataset.shape[0], desc="Videos that failed to be processed"
     )
-    tqdm_bar_sucess = tqdm(total=dataset.shape[0], desc="Videos successfully downloaded")
+    tqdm_bar_success = tqdm(total=dataset.shape[0], desc="Videos successfully downloaded")
 
     pool = Pool(max_workers=num_jobs)
     futures = []
@@ -260,7 +260,7 @@ def main(
             fobj.write(json.dumps(status_lst))
     tqdm_bar_failed_download.close()
     tqdm_bar_failed_processing.close()
-    tqdm_bar_sucess.close()
+    tqdm_bar_success.close()
 
     # Clean tmp dir.
     shutil.rmtree(tmp_dir)
