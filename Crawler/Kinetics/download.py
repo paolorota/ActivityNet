@@ -91,6 +91,8 @@ def download_clip(
         "-o",
         '"%s"' % tmp_filename,
         '"%s"' % (url_base + video_identifier),
+        # "--cookies",
+        # "cookies.txt",
     ]
     command = " ".join(command)
     attempts = 0
@@ -103,7 +105,7 @@ def download_clip(
             attempts += 1
             if attempts == num_attempts:
                 tqdm_bar.update()
-                return status, str(err.output)
+                return status, err.output.decode("utf-8")
         else:
             break
 
@@ -136,7 +138,7 @@ def download_clip(
     except subprocess.CalledProcessError as err:
         # print(err)
         tqdm_bar.update()
-        return status, str(err.output)
+        return status, err.output.decode("utf-8")
     # Check if the video was successfully saved.
     status = os.path.exists(output_filename)
     os.remove(tmp_filename)
@@ -291,3 +293,4 @@ if __name__ == "__main__":
     # help='CSV file of the previous version of Kinetics.')
 
     main(**vars(p.parse_args()))
+
